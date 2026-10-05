@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Who Took the Cake? A 5-minute mystery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E7F0DC; --card:#FFFDF8; --ink:#3B2418; --soft:#7A5C4A; --pink:#E2496F; --pink-ink:#fff;
+  --butter:#F6D776; --line:#D9CFC2; --gone:#CFC5B8; --ok:#2F7D4F; --bad:#B3261E;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1E1712; --card:#2A201A; --ink:#F3E6DA; --soft:#C7AE9C; --pink:#FF7A97; --pink-ink:#2A101A;
+    --butter:#E8C55A; --line:#4A3A2E; --gone:#5A4A3E; --ok:#7FD39E; --bad:#FF8A80;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1E1712; --card:#2A201A; --ink:#F3E6DA; --soft:#C7AE9C; --pink:#FF7A97; --pink-ink:#2A101A;
+  --butter:#E8C55A; --line:#4A3A2E; --gone:#5A4A3E; --ok:#7FD39E; --bad:#FF8A80;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Figtree,"Segoe UI",system-ui,sans-serif;font-size:1.05rem;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
+h1,h2{font-family:"Bricolage Grotesque",Figtree,system-ui,sans-serif;margin:0;line-height:1.05}
+h1{font-size:clamp(2.4rem,6vw,4.2rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.45rem;font-weight:800;margin-bottom:.75rem}
+button{font:inherit;cursor:pointer}
+button:focus-visible,.suspect:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
+
+.top{display:grid;grid-template-columns:1fr auto;gap:1.5rem;align-items:center}
+.story{max-width:60ch;margin:.9rem 0 0;font-size:1.15rem;color:var(--soft)}
+.story strong{color:var(--ink)}
+
+.timer{display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.cake{width:170px;height:170px}
+.cake .slice{fill:var(--pink);stroke:var(--card);stroke-width:3;transition:opacity .5s,transform .5s;transform-origin:100px 100px}
+.cake .slice.eaten{opacity:0;transform:scale(.6)}
+.cake .plate{fill:var(--card);stroke:var(--line);stroke-width:3}
+.cake .center{fill:var(--butter)}
+.time{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:2.4rem;font-variant-numeric:tabular-nums;line-height:1}
+.time.low{color:var(--bad)}
+.tbtns{display:flex;gap:.5rem}
+.btn{border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:999px;padding:.45rem 1.05rem;font-weight:700}
+.btn.primary{background:var(--pink);border-color:var(--pink);color:var(--pink-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.board{display:grid;grid-template-columns:1fr 1.15fr;gap:1.5rem;margin-top:2rem}
+.panel{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:1.25rem 1.3rem}
+.cluehead{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem}
+.cluehead h2{margin:0}
+ol.clues{list-style:none;margin:0;padding:0;display:grid;gap:.65rem;counter-reset:c}
+ol.clues li{counter-increment:c;display:grid;grid-template-columns:2rem 1fr;gap:.6rem;align-items:start;padding:.7rem .8rem;border-radius:14px;background:var(--bg)}
+ol.clues li::before{content:counter(c);font-family:"Bricolage Grotesque",sans-serif;font-weight:800;width:2rem;height:2rem;border-radius:50%;display:grid;place-items:center;background:var(--butter);color:#3B2418}
+ol.clues li.new{animation:pop .45s ease}
+.empty{color:var(--soft);margin:0}
+@keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+
+.hint{color:var(--soft);font-size:.95rem;margin:-.4rem 0 .9rem}
+.suspects{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.8rem}
+.suspect{position:relative;text-align:left;background:var(--bg);border:2px solid transparent;border-radius:18px;padding:.9rem;color:var(--ink);transition:border-color .2s}
+.suspect .face{font-size:2.2rem;line-height:1;display:block;margin-bottom:.4rem}
+.suspect .name{font-weight:700;font-size:1.1rem;display:block}
+.suspect .role{color:var(--soft);font-size:.92rem}
+.suspect.out{opacity:.5}
+.suspect.out .name{text-decoration:line-through;text-decoration-thickness:3px;text-decoration-color:var(--bad)}
+.suspect.out::after{content:"✕";position:absolute;top:.5rem;right:.75rem;color:var(--bad);font-weight:800;font-size:1.3rem}
+.suspect.pick{border-color:var(--pink)}
+
+.accuse{margin-top:1.5rem;display:flex;flex-wrap:wrap;align-items:center;gap:1rem}
+.accuse select{font:inherit;padding:.5rem .8rem;border-radius:12px;border:2px solid var(--ink);background:var(--card);color:var(--ink)}
+.result{margin-top:1.5rem;padding:1.3rem 1.4rem;border-radius:22px;border:3px solid var(--ok);background:var(--card)}
+.result.wrong{border-color:var(--bad)}
+.result h2{margin-bottom:.5rem}
+.result ul{margin:.5rem 0 0;padding-left:1.2rem}
+.result li{margin:.25rem 0}
+[hidden]{display:none!important}
+
+details.guide{margin-top:2rem;background:var(--card);border:2px dashed var(--line);border-radius:18px;padding:.9rem 1.2rem}
+details.guide summary{font-weight:700;cursor:pointer}
+details.guide ol{margin:.6rem 0 0;padding-left:1.2rem}
+
+@media (max-width:760px){
+  .top{grid-template-columns:1fr}
+  .timer{flex-direction:row;justify-content:flex-start;flex-wrap:wrap}
+  .cake{width:110px;height:110px}
+  .board{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Who took the cake?</h1>
+      <p class="story">It was Divya's birthday. Her <strong>chocolate cake</strong> was in the office fridge, and between <strong>2:00 and 2:30 pm</strong> it vanished. Five people were around. Use the clues to find out who did it before the cake timer runs out.</p>
+    </div>
+    <div class="timer" aria-label="Five minute timer">
+      <svg class="cake" viewBox="0 0 200 200" aria-hidden="true">
+        <circle class="plate" cx="100" cy="100" r="96"/>
+        <g id="slices"></g>
+        <circle class="center" cx="100" cy="100" r="14"/>
+      </svg>
+      <div class="time" id="time" aria-live="polite">5:00</div>
+      <div class="tbtns">
+        <button class="btn primary" id="startBtn">Start timer</button>
+        <button class="btn" id="resetBtn">Reset</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="board">
+    <section class="panel" aria-labelledby="clueTitle">
+      <div class="cluehead">
+        <h2 id="clueTitle">Clues</h2>
+        <button class="btn primary" id="clueBtn">Reveal next clue</button>
+      </div>
+      <p class="empty" id="noClues">No clues yet. Reveal the first one to begin.</p>
+      <ol class="clues" id="clues"></ol>
+    </section>
+
+    <section class="panel" aria-labelledby="susTitle">
+      <h2 id="susTitle">Suspects</h2>
+      <p class="hint">Tap a suspect to cross them out when a clue rules them out. Tap again to bring them back.</p>
+      <div class="suspects" id="suspects"></div>
+    </section>
+  </main>
+
+  <div class="accuse">
+    <label for="pick"><strong>Class decision:</strong></label>
+    <select id="pick">
+      <option value="">Choose the cake thief</option>
+    </select>
+    <button class="btn primary" id="accuseBtn" disabled>Make the accusation</button>
+  </div>
+
+  <section class="result" id="result" hidden aria-live="polite"></section>
+
+  <details class="guide">
+    <summary>How to run this in class (for the teacher)</summary>
+    <ol>
+      <li>Share your screen and read the story aloud.</li>
+      <li>Start the timer, then reveal one clue at a time, roughly every 40 seconds.</li>
+      <li>After each clue, ask students in the chat: "Who can we rule out, and why?" Cross out suspects as the class agrees.</li>
+      <li>When the class is confident, pick the suspect and make the accusation. The answer shows the reasoning step by step.</li>
+      <li>Close with one question: "Did anyone guess too early? What made you sure in the end?"</li>
+    </ol>
+  </details>
+</div>
+
+<script>
+const SUSPECTS = [
+  {id:"anu", face:"👩‍💼", name:"Anu", role:"Manager"},
+  {id:"rahul", face:"👨‍🎨", name:"Rahul", role:"Designer"},
+  {id:"meera", face:"👩‍🔬", name:"Meera", role:"Accountant"},
+  {id:"joseph", face:"🧑‍🎓", name:"Joseph", role:"Intern"},
+  {id:"fathima", face:"👩‍💻", name:"Fathima", role:"Sales executive"}
+];
+const CLUES = [
+  "The fridge is on the 2nd floor. Everyone's desk is on the 1st floor.",
+  "Meera left the office at 1:00 pm for a doctor's appointment and didn't come back.",
+  "Anu was presenting in a client meeting from 1:30 to 3:00 pm. Six people saw her there the whole time.",
+  "Rahul is allergic to chocolate. He never touches anything with chocolate in it.",
+  "The lift was broken all afternoon. Joseph has a broken leg and cannot climb stairs.",
+  "A colleague spotted chocolate smudges on the sleeve of a blue shirt. Fathima is wearing a blue shirt today."
+];
+const ANSWER = "fathima";
+const REASONS = [
+  "Meera left at 1:00 pm, before the cake went missing.",
+  "Anu was in a meeting with six witnesses during the whole time.",
+  "Rahul is allergic to chocolate, and it was a chocolate cake.",
+  "Joseph couldn't reach the 2nd floor fridge: the lift was broken and he can't climb stairs.",
+  "Only Fathima is left, and the chocolate on the blue sleeve confirms it."
+];
+
+const TOTAL = 300;
+let left = TOTAL, tick = null, shown = 0;
+
+// Cake slices
+const slicesG = document.getElementById("slices");
+const N = 5, R = 88, C = 100;
+for (let i = 0; i < N; i++) {
+  const a1 = (i / N) * 2 * Math.PI - Math.PI / 2, a2 = ((i + 1) / N) * 2 * Math.PI - Math.PI / 2;
+  const x1 = C + R * Math.cos(a1), y1 = C + R * Math.sin(a1);
+  const x2 = C + R * Math.cos(a2), y2 = C + R * Math.sin(a2);
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttribute("d", `M${C},${C} L${x1},${y1} A${R},${R} 0 0 1 ${x2},${y2} Z`);
+  p.setAttribute("class", "slice");
+  slicesG.appendChild(p);
+}
+const sliceEls = [...slicesG.children];
+
+const timeEl = document.getElementById("time");
+const startBtn = document.getElementById("startBtn");
+function render() {
+  const m = Math.floor(left / 60), s = left % 60;
+  timeEl.textContent = left === 0 ? "Time's up!" : `${m}:${String(s).padStart(2, "0")}`;
+  timeEl.classList.toggle("low", left <= 30);
+  const eaten = Math.min(N, Math.floor((TOTAL - left) / 60));
+  sliceEls.forEach((el, i) => el.classList.toggle("eaten", i >= N - eaten));
+}
+startBtn.onclick = () => {
+  if (tick) { clearInterval(tick); tick = null; startBtn.textContent = "Resume"; return; }
+  if (left === 0) return;
+  startBtn.textContent = "Pause";
+  tick = setInterval(() => {
+    left--; render();
+    if (left <= 0) { clearInterval(tick); tick = null; startBtn.textContent = "Start timer"; startBtn.disabled = true; }
+  }, 1000);
+};
+
+// Clues
+const cluesEl = document.getElementById("clues"), clueBtn = document.getElementById("clueBtn");
+clueBtn.onclick = () => {
+  if (shown >= CLUES.length) return;
+  document.getElementById("noClues").hidden = true;
+  cluesEl.querySelectorAll(".new").forEach(li => li.classList.remove("new"));
+  const li = document.createElement("li");
+  li.className = "new";
+  li.innerHTML = `<span>${CLUES[shown]}</span>`;
+  cluesEl.appendChild(li);
+  shown++;
+  if (shown === CLUES.length) { clueBtn.textContent = "All clues revealed"; clueBtn.disabled = true; }
+};
+
+// Suspects
+const susEl = document.getElementById("suspects"), pick = document.getElementById("pick"), accuseBtn = document.getElementById("accuseBtn");
+SUSPECTS.forEach(s => {
+  const b = document.createElement("button");
+  b.className = "suspect"; b.dataset.id = s.id; b.setAttribute("aria-pressed", "false");
+  b.innerHTML = `<span class="face" aria-hidden="true">${s.face}</span><span class="name">${s.name}</span><span class="role">${s.role}</span>`;
+  b.onclick = () => { const out = b.classList.toggle("out"); b.setAttribute("aria-pressed", out); b.setAttribute("aria-label", `${s.name}, ${out ? "ruled out" : "still a suspect"}`); };
+  susEl.appendChild(b);
+  const o = document.createElement("option"); o.value = s.id; o.textContent = s.name; pick.appendChild(o);
+});
+pick.onchange = () => {
+  accuseBtn.disabled = !pick.value;
+  susEl.querySelectorAll(".suspect").forEach(b => b.classList.toggle("pick", b.dataset.id === pick.value));
+};
+
+// Accuse
+const result = document.getElementById("result");
+accuseBtn.onclick = () => {
+  if (tick) { clearInterval(tick); tick = null; startBtn.textContent = "Resume"; }
+  const who = SUSPECTS.find(s => s.id === pick.value);
+  const right = pick.value === ANSWER;
+  result.hidden = false;
+  result.classList.toggle("wrong", !right);
+  if (right) {
+    result.innerHTML = `<h2>🎉 Case solved! It was Fathima.</h2>
+      <p>Here's how the clues prove it:</p>
+      <ul>${REASONS.map(r => `<li>${r}</li>`).join("")}</ul>
+      <p><strong>The lesson:</strong> rule out what's impossible, one fact at a time, and what's left is the answer.</p>`;
+  } else {
+    result.innerHTML = `<h2>Not quite. ${who.name} has an alibi.</h2>
+      <p>Look at the clues again. Which fact rules ${who.name} out? Cross them out and try another suspect.</p>`;
+  }
+  result.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest"});
+};
+
+document.getElementById("resetBtn").onclick = () => {
+  clearInterval(tick); tick = null; left = TOTAL; shown = 0;
+  startBtn.textContent = "Start timer"; startBtn.disabled = false;
+  cluesEl.innerHTML = ""; document.getElementById("noClues").hidden = false;
+  clueBtn.textContent = "Reveal next clue"; clueBtn.disabled = false;
+  susEl.querySelectorAll(".suspect").forEach(b => { b.classList.remove("out", "pick"); b.setAttribute("aria-pressed", "false"); });
+  pick.value = ""; accuseBtn.disabled = true; result.hidden = true;
+  render();
+};
+render();
+</script>
+</body>
+</html>
